@@ -1,46 +1,24 @@
 <script setup lang="ts">
-import {ref} from 'vue'
-  type ToDo = {
-    id: number,
-    title: string,
-    completed: boolean,
-  } 
+import { ref } from 'vue'
 
-  const list = ref<ToDo[]> ([
-    {
-      id: 1,
-      title: "ciao",
-      completed: false,
-    },
-    {
-      id: 2,
-      title: "hello",
-      completed: false,
-    },
-    {
-      id: 3,
-      title: "hola",
-      completed: true,
-    }
-])
-const newItem = ref('')
-function addOne() {
-list.value.push({
-  id: list.value.length + 1,
-  title: newItem.value,
-  completed: false,
-})
+interface ToDo {
+  id: number
+  title: string
+  description: string
+  completed: boolean
 }
+const list = ref<ToDo[]>([])
+
+async function fetchList() {
+  const response = await fetch('http://localhost:6969/todos', { method: 'GET' })
+  const json = await response.json()
+  list.value = json
+}
+fetchList()
 </script>
 
 <template>
-  <main class="container mt-4 bg-blue-500">
-    <form @submit.prevent="addOne">
-      <input type="text" v-model="newItem" placeholder="add title">
-      <button type="submit" @click="addOne">
-        add
-      </button>
-    </form>
+  <main class="container mt-4">
     <li v-for="item in list" :key="item.id">
       {{ item.title }}
     </li>
