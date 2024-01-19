@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref } from 'vue'
+import ToDoForm from '@/components/ToDoForm.vue';
 
 interface ToDo {
   id: number
@@ -19,6 +20,7 @@ fetchList()
 
 <template>
   <main class="container mt-4">
+    <ToDoForm />
     <li v-for="item in list" :key="item.id">
       {{ item.title }}
     </li>
