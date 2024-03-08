@@ -1,38 +1,93 @@
 <script setup lang="ts">
-    import {Form as VeeForm, Field as VeeField, ErrorMessage as VeeErrorMessage} from 'vee-validate'
-    import * as Z from 'zod'
-    import { toTypedSchema } from '@vee-validate/zod'
+import * as z from 'zod'
+import { toTypedSchema } from '@vee-validate/zod'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter
+} from '@/components/ui/dialog'
+import {
+  Form,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormControl,
+  FormMessage,
+  FormDescription
+} from '@/components/ui/form'
 
-const TODO_SCHEMA = Z.object ({
-    title: Z.string().min(3).max(100),
-    description: Z.string().max(1000).default('')
-    })
+type Props = {
+  open: boolean
+}
+type Emits = {
+  (e: 'update:open', value: boolean): void
+}
+const props = defineProps<Props>()
+const emits = defineEmits<Emits>()
 
-const schema =toTypedSchema(TODO_SCHEMA)
+const TODO_SCHEMA = z.object({
+  title: z.string().min(3).max(100),
+  description: z.string().max(1000).default('')
+})
+const schema = toTypedSchema(TODO_SCHEMA)
 
 async function onSubmit(values: any) {
-    console.log(values)
-    const body = {
-        ...values,
-        completed: false
+  console.log(values)
+  const body = {
+    ...values,
+    completed: false
+  }
+  await fetch('http://localhost:6969/todos', {
+    method: 'POST',
+    body: JSON.stringify(body),
+    headers: {
+      'Content-Type': 'application/json'
     }
-    const response = await fetch('http://localhost:6969/todos', { method: 'POST' , body:JSON.stringify(body), headers: {
-        'Content-Type': 'application/json'
-    } })
-    window.location.reload()
+  })
+  window.location.reload()
 }
 </script>
 
 <template>
-    <VeeForm class="flex flex-col items-start max-w-md gap-2 mx-auto my-3" @submit="onSubmit" :validation-schema="schema">
-        <label class="flex flex-col w-full gap-1">Title
-        <VeeField class="px-3 py-2 border rounded bg-slate-50 border-slate-300" name="title" placeholder="title"/>
-        <VeeErrorMessage name="title" class="text-red-500"/>
-    </label>
-    <label class="flex flex-col w-full gap-1">Description
-        <VeeField class="px-3 py-2 border rounded bg-slate-50 border-slate-300" name="description" placeholder="description"/>
-        <VeeErrorMessage class="text-red-500" name="password"/>
-    </label>
-        <button class="px-3 py-2 rounded  bg-slate-500 text-slate-50">submit</button>
-    </VeeForm>
+  <Form class="flex flex-col gap-8 items-start my-3" @submit="onSubmit" :validation-schema="schema">
+    <Dialog :open="open" @update:open="(v) => emits('update:open', v)">
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle> New To Do </DialogTitle>
+          <DialogDescription> Create a new To Do item </DialogDescription>
+        </DialogHeader>
+        <FormField name="title" v-slot="{ componentField }">
+          <FormItem class="w-full">
+            <FormLabel>Title</FormLabel>
+            <FormDescription>The title of new ToDo</FormDescription>
+            <FormControl>
+              <Input class="w-full" placeholder="Get the groceries" v-bind="componentField" />
+            </FormControl>
+            <FormMessage />
+          </FormItem>
+        </FormField>
+        <FormField name="descripton" v-slot="{ componentField }">
+          <FormItem class="w-full">
+            <FormLabel>Description</FormLabel>
+            <FormDescription>The description of this ToDo</FormDescription>
+            <FormControl>
+              <Input class="w-full" v-bind="componentField" />
+            </FormControl>
+            <FormMessage />
+          </FormItem>
+        </FormField>
+        <DialogFooter>
+          <Button @click="emits('update:open', false)" variant="ghost" type="button">
+            Cancel
+          </Button>
+          <Button type="submit"> Save </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  </Form>
 </template>
